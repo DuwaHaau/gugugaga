@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Tập Hiệu Quả</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #161921;
+      --surface2: #1e2230;
+      --accent: #f5c842;
+      --accent2: #e8855c;
+      --text: #e8e6df;
+      --muted: #7a7d8a;
+      --border: #2a2d3a;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      padding: 60px 40px 50px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(245,200,66,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(245,200,66,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(245,200,66,0.3);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #f5c842 0%, #e8855c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 300;
+      max-width: 560px;
+      line-height: 1.7;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ── SECTION CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.2s;
+    }
+
+    .card:focus-within {
+      border-color: rgba(245,200,66,0.4);
+    }
+
+    .card-title {
+      font-size: 0.7rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title svg { flex-shrink: 0; }
+
+    /* ── TEXTAREA ── */
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      padding: 16px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: rgba(245,200,66,0.5);
+    }
+
+    textarea::placeholder { color: var(--muted); }
+
+    /* ── UPLOAD ZONES ── */
+    .upload-zone {
+      background: var(--surface2);
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(245,200,66,0.04);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(245,200,66,0.1);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .upload-label {
+      font-size: 0.9rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .upload-hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    /* ── PREVIEW GRIDS ── */
+    #video-preview, #image-preview {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    #video-preview { grid-template-columns: 1fr; }
+    #image-preview { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+
+    .preview-video {
+      width: 100%;
+      border-radius: 8px;
+      background: #000;
+      border: 1px solid var(--border);
+    }
+
+    .preview-img-wrap {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: var(--surface2);
+    }
+
+    .preview-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 24px; height: 24px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+      transition: background 0.2s;
+    }
+
+    .remove-btn:hover { background: rgba(220,50,50,0.85); }
+
+    /* ── LINK INPUT ── */
+    .link-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .link-row input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 0.9rem;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .link-row input:focus { border-color: rgba(245,200,66,0.5); }
+    .link-row input::placeholder { color: var(--muted); }
+
+    .link-row input.title-input { max-width: 200px; }
+
+    .add-link-btn, .btn-primary {
+      background: var(--accent);
+      color: #0d0f14;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 11px 18px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .add-link-btn:hover, .btn-primary:hover { opacity: 0.88; }
+    .add-link-btn:active, .btn-primary:active { transform: scale(0.97); }
+
+    /* ── LINK LIST ── */
+    #link-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+
+    .link-icon {
+      width: 28px; height: 28px;
+      background: rgba(245,200,66,0.1);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .link-details { flex: 1; min-width: 0; }
+
+    .link-title-text {
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .link-url {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .link-url a { color: var(--accent2); text-decoration: none; }
+    .link-url a:hover { text-decoration: underline; }
+
+    .del-link-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.2s;
+    }
+    .del-link-btn:hover { color: #e05555; }
+
+    /* ── SAVE BTN ── */
+    .save-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .save-status {
+      font-size: 0.83rem;
+      color: #6ec97d;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .save-status.show { opacity: 1; }
+
+    .btn-primary {
+      font-size: 0.95rem;
+      padding: 13px 30px;
+      border-radius: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header { padding: 40px 20px 36px; }
+      .link-row { flex-wrap: wrap; }
+      .link-row .title-input { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Khóa học</div>
+  <h1>Học Tập Hiệu Quả</h1>
+  <p class="subtitle">Quản lý nội dung bài giảng — đăng tải video, hình ảnh và tài liệu tham khảo một cách dễ dàng.</p>
+</header>
+
+<main>
+
+  <!-- MÔ TẢ KHÓA HỌC -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+      Mô tả khóa học
+    </div>
+    <textarea id="course-desc" rows="5" placeholder="Nhập mô tả nội dung, mục tiêu khóa học, đối tượng phù hợp..."></textarea>
+  </div>
+
+  <!-- VIDEO -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Đăng tải Video
+    </div>
+    <div class="upload-zone" id="video-zone">
+      <input type="file" id="video-input" accept="video/*" multiple />
+      <div class="upload-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f5c842" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+      </div>
+      <div class="upload-label">Kéo & thả video hoặc bấm để chọn</div>
+      <div class="upload-hint">MP4, MOV, AVI — tối đa 500MB mỗi file</div>
+    </div>
+    <div id="video-preview"></div>
+  </div>
+
+  <!-- HÌNH ẢNH -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Đăng tải Hình ảnh
+    </div>
+    <div class="upload-zone" id="image-zone">
+      <input type="file" id="image-input" accept="image/*" multiple />
+      <div class="upload-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f5c842" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+      </div>
+      <div class="upload-label">Kéo & thả ảnh hoặc bấm để chọn</div>
+      <div class="upload-hint">JPG, PNG, GIF, WebP — nhiều ảnh cùng lúc</div>
+    </div>
+    <div id="image-preview"></div>
+  </div>
+
+  <!-- LIÊN KẾT TÀI LIỆU -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      Tài liệu tham khảo
+    </div>
+    <div class="link-row">
+      <input type="text" id="link-title" class="title-input" placeholder="Tên tài liệu" />
+      <input type="url" id="link-url" placeholder="https://..." />
+      <button class="add-link-btn" onclick="addLink()">+ Thêm</button>
+    </div>
+    <div id="link-list"></div>
+  </div>
+
+  <!-- LƯU -->
+  <div class="save-row">
+    <span class="save-status" id="save-status">✓ Đã lưu thành công!</span>
+    <button class="btn-primary" onclick="saveAll()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Lưu khóa học
+    </button>
+  </div>
+
+</main>
+
+<script>
+  // ── Drag-over highlight ──
+  ['video-zone','image-zone'].forEach(id => {
+    const zone = document.getElementById(id);
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', () => zone.classList.remove('drag-over'));
+  });
+
+  // ── VIDEO ──
+  document.getElementById('video-input').addEventListener('change', function() {
+    const preview = document.getElementById('video-preview');
+    Array.from(this.files).forEach(file => {
+      const url = URL.createObjectURL(file);
+      const wrap = document.createElement('div');
+      wrap.style.position = 'relative';
+      const vid = document.createElement('video');
+      vid.src = url;
+      vid.controls = true;
+      vid.className = 'preview-video';
+      const rm = document.createElement('button');
+      rm.className = 'remove-btn';
+      rm.innerHTML = '✕';
+      rm.title = 'Xóa';
+      rm.onclick = () => { wrap.remove(); URL.revokeObjectURL(url); };
+      wrap.appendChild(vid);
+      wrap.appendChild(rm);
+      preview.appendChild(wrap);
+    });
+    this.value = '';
+  });
+
+  // ── IMAGE ──
+  document.getElementById('image-input').addEventListener('change', function() {
+    const preview = document.getElementById('image-preview');
+    Array.from(this.files).forEach(file => {
+      const url = URL.createObjectURL(file);
+      const wrap = document.createElement('div');
+      wrap.className = 'preview-img-wrap';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = file.name;
+      const rm = document.createElement('button');
+      rm.className = 'remove-btn';
+      rm.innerHTML = '✕';
+      rm.title = 'Xóa';
+      rm.onclick = () => { wrap.remove(); URL.revokeObjectURL(url); };
+      wrap.appendChild(img);
+      wrap.appendChild(rm);
+      preview.appendChild(wrap);
+    });
+    this.value = '';
+  });
+
+  // ── LINKS ──
+  let links = [];
+
+  function addLink() {
+    const title = document.getElementById('link-title').value.trim();
+    const url   = document.getElementById('link-url').value.trim();
+    if (!url) { alert('Vui lòng nhập đường link.'); return; }
+    if (!/^https?:\/\//i.test(url)) { alert('Đường link phải bắt đầu bằng http:// hoặc https://'); return; }
+    const id = Date.now();
+    links.push({ id, title: title || url, url });
+    renderLinks();
+    document.getElementById('link-title').value = '';
+    document.getElementById('link-url').value = '';
+  }
+
+  // Allow pressing Enter in url field
+  document.getElementById('link-url').addEventListener('keydown', e => { if (e.key === 'Enter') addLink(); });
+
+  function renderLinks() {
+    const list = document.getElementById('link-list');
+    list.innerHTML = '';
+    links.forEach(link => {
+      const item = document.createElement('div');
+      item.className = 'link-item';
+      item.innerHTML = `
+        <div class="link-icon">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f5c842" stroke-width="2.2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <div class="link-details">
+          <div class="link-title-text">${escHtml(link.title)}</div>
+          <div class="link-url"><a href="${escHtml(link.url)}" target="_blank" rel="noopener">${escHtml(link.url)}</a></div>
+        </div>
+        <button class="del-link-btn" title="Xóa" onclick="removeLink(${link.id})">✕</button>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  function removeLink(id) {
+    links = links.filter(l => l.id !== id);
+    renderLinks();
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── SAVE (local storage demo) ──
+  function saveAll() {
+    const data = {
+      desc: document.getElementById('course-desc').value,
+      links
+    };
+    localStorage.setItem('hoc-tap-hieu-qua', JSON.stringify(data));
+    const st = document.getElementById('save-status');
+    st.classList.add('show');
+    setTimeout(() => st.classList.remove('show'), 2500);
+  }
+
+  // Load saved data
+  (function load() {
+    const raw = localStorage.getItem('hoc-tap-hieu-qua');
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      if (data.desc) document.getElementById('course-desc').value = data.desc;
+      if (data.links) { links = data.links; renderLinks(); }
+    } catch(e) {}
+  })();
+</script>
+</body>
+</html>
